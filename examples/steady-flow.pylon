@@ -1,0 +1,6 @@
+# PylonDTL scripted operational flow
+SCENARIO steady-script
+OPEN ses-script atlas USDC rtgs atlas-funding balanced
+ORDER ord-script ses-script atlas USDC rtgs atlas-funding beneficiary-a 150000000 150000000 10 5
+QUOTE atlas USDC rtgs 75000000 10
+NOTE scripted rtgs settlement completed
