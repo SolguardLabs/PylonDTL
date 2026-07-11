@@ -13,7 +13,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Install compiler
-        run: sudo apt-get update && sudo apt-get install -y g++
+      - name: Install native toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+          c++ --version
+          g++ --version
       - name: CI
         run: bash scripts/ci.sh

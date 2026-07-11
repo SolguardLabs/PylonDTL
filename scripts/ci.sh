@@ -20,4 +20,4 @@ fi
 
 "$NODE_BIN" scripts/check-format.mjs
 "$NODE_BIN" scripts/build.mjs
-"$NODE_BIN" --test --test-concurrency=1 "tests/node/*.test.js"
+"$NODE_BIN" --test --test-concurrency=1 tests/node/*.test.js
