@@ -12,6 +12,19 @@ motor. Cada orden debe estar vinculada a una sesion, coincidir con el operador,
 asset y canal autorizados, respetar el envelope de fees y conservar balances por
 asset en el ledger.
 
+```mermaid
+flowchart TB
+    U[Cliente / operador] --> G[Gateway autenticado]
+    G --> P[PolicyBook]
+    G --> S[SessionManager]
+    P --> E[RiskEngine]
+    S --> E
+    E --> C[Ledger candidato]
+    C -->|todo correcto| L[Ledger confirmado]
+    C -->|error| R[Rechazo sin movimientos parciales]
+    L --> A[Reconciler y auditoría]
+```
+
 ## Invariantes Esperadas
 
 - Los balances por asset se conservan entre cuentas internas.
@@ -20,6 +33,9 @@ asset en el ledger.
 - Las sesiones agregan notional y reserva de sus recibos liquidados.
 - Las politicas deshabilitadas no admiten nuevas sesiones operativas.
 - Las cuotas visibles se recalculan en cada cambio de epoch.
+- Notional, fee y reserva se calculan con controles de rango antes de
+  confirmar movimientos.
+- El ledger no conserva transferencias parciales de una orden rechazada.
 
 ## Validaciones Automatizadas
 
@@ -49,6 +65,10 @@ El alcance principal cubre:
 
 Quedan fuera de alcance integraciones con custodios reales, conectores de red,
 credenciales, llaves privadas y servicios de settlement externos.
+
+La conservación por asset prueba que no se crea ni destruye valor en el libro.
+No sustituye la revisión de exposición por política, sesión y epoch, ni la
+aprobación humana de límites para un conector externo.
 
 ## Formato De Reporte Interno
 

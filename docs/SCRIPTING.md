@@ -31,3 +31,10 @@ Ejecutar:
 ```bash
 dist/pylon-dtl script examples/steady-flow.pylon
 ```
+
+Una línea inválida termina con error y número de línea. Los importes fuera del
+rango entero de 64 bits se rechazan durante el parseo; no se truncan. Para
+reproducir un caso, archivar el script, la versión del binario y el digest del
+reporte. `QUOTE` es una vista puntual, no una reserva de capacidad; antes de
+ejecutar una orden el integrador debe volver a consultar el estado que gobierna
+su decisión operativa.
