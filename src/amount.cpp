@@ -1,6 +1,7 @@
 #include "pylon.hpp"
 
 #include <cctype>
+#include <cerrno>
 #include <climits>
 #include <cstdlib>
 #include <limits>
@@ -323,7 +324,11 @@ Amount parse_amount(const std::string& value) {
         throw RuntimeError("empty amount");
     }
     char* end = nullptr;
+    errno = 0;
     const long long parsed = std::strtoll(cleaned.c_str(), &end, 10);
+    if (errno == ERANGE) {
+        throw RuntimeError("amount out of range: " + value);
+    }
     if (end == cleaned.c_str() || *end != '\0') {
         throw RuntimeError("invalid amount: " + value);
     }
@@ -348,7 +353,11 @@ long long parse_i64(const std::string& value) {
         throw RuntimeError("empty integer");
     }
     char* end = nullptr;
+    errno = 0;
     const long long parsed = std::strtoll(cleaned.c_str(), &end, 10);
+    if (errno == ERANGE) {
+        throw RuntimeError("integer out of range: " + value);
+    }
     if (end == cleaned.c_str() || *end != '\0') {
         throw RuntimeError("invalid integer: " + value);
     }
@@ -367,6 +376,9 @@ std::string fixed_decimals(Amount amount, int decimals) {
     }
     Amount divisor = 1;
     for (int i = 0; i < decimals; ++i) {
+        if (divisor > std::numeric_limits<Amount>::max() / 10) {
+            throw RuntimeError("decimal scale out of range");
+        }
         divisor *= 10;
     }
     const Amount whole = amount / divisor;

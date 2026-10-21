@@ -1,6 +1,6 @@
 {
   "name": "pylon-dtl",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Motor C++ de limites de riesgo por operador, asset y canal de settlement.",

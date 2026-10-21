@@ -455,6 +455,10 @@ QuoteResult RiskEngine::quote(const PolicyKey& key, Amount notional, int fee_bps
     QuoteResult result;
     result.key = key;
     result.requested_notional = notional;
+    if (notional <= 0) {
+        result.reason = "notional must be positive";
+        return result;
+    }
     const auto maybe_policy = policy_.maybe_policy(key);
     if (!maybe_policy) {
         result.reason = "policy not found";
@@ -465,7 +469,8 @@ QuoteResult RiskEngine::quote(const PolicyKey& key, Amount notional, int fee_bps
     result.reserve = mul_bps(notional, quota.reserve_bps);
     result.net_amount = clamp_non_negative(notional - result.fee - result.reserve);
     result.remaining = quota.strictest_remaining();
-    result.accepted = quota.enabled && fee_bps >= quota.fee_bps && notional + result.reserve <= result.remaining;
+    result.accepted = quota.enabled && fee_bps >= quota.fee_bps &&
+                      checked_add(notional, result.reserve) <= result.remaining;
     result.reason = result.accepted ? "accepted" : "outside envelope";
     return result;
 }
@@ -518,16 +523,19 @@ void RiskEngine::apply_receipt(
     const Amount reserve = decision.projected_reserve;
     const Amount net = clamp_non_negative(intent.notional - fee - reserve);
 
+    LedgerBook candidate_ledger = ledger_;
     bool ok = true;
-    ok = ok && ledger_.transfer(intent.source_account, intent.beneficiary_account, intent.asset_id, net, intent.id);
-    ok = ok && ledger_.transfer(intent.source_account, channel.fee_account(), intent.asset_id, fee, intent.id);
-    ok = ok && ledger_.transfer(intent.source_account, channel.reserve_account(), intent.asset_id, reserve, intent.id);
+    ok = ok && candidate_ledger.transfer(intent.source_account, intent.beneficiary_account, intent.asset_id, net, intent.id);
+    ok = ok && candidate_ledger.transfer(intent.source_account, channel.fee_account(), intent.asset_id, fee, intent.id);
+    ok = ok && candidate_ledger.transfer(intent.source_account, channel.reserve_account(), intent.asset_id, reserve, intent.id);
     if (!ok) {
         receipt.code = AdmissionCode::LedgerRejected;
         receipt.status = "rejected";
         ++stats_.orders_rejected;
         return;
     }
+
+    ledger_ = std::move(candidate_ledger);
 
     exposure_.record(intent.key(), intent.notional, reserve);
     sessions_.note_execution(intent.session_id, intent.notional, reserve, receipt.sequence);

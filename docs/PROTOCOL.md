@@ -3,6 +3,21 @@
 PylonDTL organiza la ejecucion de settlement alrededor de cuatro dominios:
 operadores, assets, canales y sesiones.
 
+```mermaid
+flowchart TB
+    O[Operador] --> K[PolicyKey]
+    A[Asset] --> K
+    C[Canal] --> K
+    K --> P[PolicyBook]
+    P --> Q[QuotaState por epoch]
+    Q --> S[Sesión]
+    S --> R[Orden y recibo]
+    R --> L[LedgerBook]
+    R --> X[ExposureBook]
+    L --> Y[Reconciler]
+    X --> Y
+```
+
 ## Operadores
 
 Un operador representa una entidad con capacidad de ejecutar ordenes. El perfil
@@ -60,3 +75,6 @@ notional en tres movimientos:
 - reserva hacia la cuenta de reserva del canal.
 
 La suma de balances por asset debe conservarse durante todo el escenario.
+El motor usa unidades enteras propias de cada asset; el campo `decimals` del
+perfil define únicamente su presentación, no una conversión implícita entre
+USDC, EURC, SOL o TBILL.
